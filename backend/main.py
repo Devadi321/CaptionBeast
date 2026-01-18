@@ -4,7 +4,7 @@ import uuid
 import math
 from typing import List
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import uvicorn
@@ -83,80 +83,92 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
     
     return txt_clip
 
-@app.post("/upload")
-async def upload_video(file: UploadFile = File(...)):
-    filename = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
+# In-memory job store
+jobs = {}
+
+def process_video_task(job_id: str, file_path: str, filename: str):
+    print(f"[{job_id}] Processing started for {filename}...")
+    jobs[job_id]["status"] = "processing"
     
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
-    # Process video
     try:
         output_filename = f"processed_{filename}"
         output_path = os.path.join(OUTPUT_DIR, output_filename)
         
         # 1. Transcribe
-        print(f"Transcribing {file_path}...")
+        print(f"[{job_id}] Transcribing...")
         result = model.transcribe(file_path, word_timestamps=True)
         segments = result.get('segments', [])
         
         # 2. Process Video
-        print("Loading Video...")
+        print(f"[{job_id}] Loading Video...")
         video = VideoFileClip(file_path)
         
         caption_clips = []
-        
-        # Flatten word timestamps
         words = []
         for segment in segments:
             for word in segment.get('words', []):
                 words.append(word)
         
-        print(f"Generating {len(words)} caption clips...")
+        print(f"[{job_id}] Generating {len(words)} caption clips...")
         
         for word_data in words:
             word = word_data['word'].strip()
             start = word_data['start']
             end = word_data['end']
             
-            if not word:
-                continue
+            if not word: continue
             
             # Smart Color Logic
-            # Highlight 'important' words (longer than 4 chars) or purely random for variety
-            # Hormozi style: Green (#00FF00) or Yellow (#FFFF00)
             color = 'white'
             if len(word) > 4:
-                # 60% chance to highlight long words
-                if random.random() > 0.4:
-                    color = '#00FF00' # Bright Green
-            elif random.random() > 0.8: # Occasional highlight for short words
-                 color = '#FFFF00' # Bright Yellow
+                if random.random() > 0.4: color = '#00FF00'
+            elif random.random() > 0.8: color = '#FFFF00'
                 
-            # Create clip
             clip = create_caption_clip(word, start, end, video.w, video.h, highlight_color=color)
             caption_clips.append(clip)
             
-        print("Compositing video...")
+        print(f"[{job_id}] Compositing...")
         final_video = CompositeVideoClip([video] + caption_clips)
         
-        # Write output
         final_video.write_videofile(
             output_path, 
             codec='libx264', 
             audio_codec='aac',
-            temp_audiofile=os.path.join(OUTPUT_DIR, "temp-audio.m4a"),
+            temp_audiofile=os.path.join(OUTPUT_DIR, f"temp-{job_id}.m4a"),
             remove_temp=True,
             fps=video.fps or 24
         )
         
-        return {"status": "success", "video_url": f"/download/{output_filename}"}
+        jobs[job_id]["status"] = "completed"
+        jobs[job_id]["video_url"] = f"/download/{output_filename}"
+        print(f"[{job_id}] Done!")
         
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        jobs[job_id]["status"] = "failed"
+        jobs[job_id]["error"] = str(e)
+
+@app.post("/upload")
+async def upload_video(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    job_id = str(uuid.uuid4())
+    filename = f"{job_id}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    jobs[job_id] = {"status": "queued", "video_url": None, "error": None}
+    background_tasks.add_task(process_video_task, job_id, file_path, filename)
+    
+    return {"job_id": job_id, "status": "queued"}
+
+@app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
 
 @app.get("/download/{filename}")
 async def download_video(filename: str):
