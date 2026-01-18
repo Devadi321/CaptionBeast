@@ -32,35 +32,53 @@ export default function Home() {
     if (!file) return;
 
     setUploading(true);
-    setProgress(10);
+    setProgress(5);
     setError(null);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      // Simulate progress
-      const interval = setInterval(() => {
-        setProgress((prev) => (prev < 90 ? prev + 5 : prev));
-      }, 500);
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
-      const response = await axios.post(`${apiUrl}/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+
+      // 1. Upload and get Job ID
+      console.log("Starting upload...");
+      const uploadResp = await axios.post(`${apiUrl}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      clearInterval(interval);
-      setProgress(100);
+      const jobId = uploadResp.data.job_id;
+      console.log("Job started:", jobId);
 
-      const videoPath = response.data.video_url;
-      // Backend returns relative path "/download/..."
-      setVideoUrl(`${apiUrl}${videoPath}`);
+      // 2. Poll for status
+      const pollInterval = setInterval(async () => {
+        try {
+          // Slowly animate progress while waiting
+          setProgress((prev) => (prev < 90 ? prev + 1 : prev));
+
+          const statusResp = await axios.get(`${apiUrl}/status/${jobId}`);
+          const status = statusResp.data.status;
+          console.log("Status:", status);
+
+          if (status === 'completed') {
+            clearInterval(pollInterval);
+            setProgress(100);
+            const videoPath = statusResp.data.video_url;
+            setVideoUrl(`${apiUrl}${videoPath}`);
+            setUploading(false);
+          } else if (status === 'failed') {
+            clearInterval(pollInterval);
+            setError("Processing failed: " + statusResp.data.error);
+            setUploading(false);
+          }
+        } catch (err) {
+          console.error("Polling error", err);
+        }
+      }, 3000);
+
     } catch (err: any) {
       console.error(err);
-      setError("Failed to process video. Please try again. " + (err.response?.data?.detail || err.message));
-    } finally {
+      setError("Failed to start upload. " + (err.response?.data?.detail || err.message));
       setUploading(false);
     }
   };
