@@ -1,0 +1,5 @@
+frontend/
+.git/
+.gitignore
+README.md
+DEPLOYMENT.md
