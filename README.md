@@ -1,17 +1,20 @@
-# CaptionBeast
+---
+title: Caption Beast Backend
+emoji: 🦁
+colorFrom: yellow
+colorTo: orange
+sdk: docker
+app_port: 7860
+pinned: false
+---
 
-A viral video caption generator.
+# CaptionBeast Backend
 
-## Structure
-- `frontend/`: Next.js web application
-- `backend/`: FastAPI Python server
+This is the FastAPI backend for CaptionBeast, capable of auto-generating MrBeast-style captions using OpenAI Whisper and MoviePy.
 
-## Setup
-1. Install Backend Dependencies:
-   `pip install -r backend/requirements.txt`
-2. Install Frontend Dependencies:
-   `cd frontend && npm install`
+## API Endpoints
 
-## Running
-1. `python3 backend/main.py`
-2. `cd frontend && npm run dev`
+- `POST /upload`: Upload a video to generate captions.
+- `GET /download/{filename}`: Download processed video.
+
+Deployed on Hugging Face Spaces (Docker).
