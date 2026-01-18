@@ -139,8 +139,8 @@ def process_video_task(job_id: str, file_path: str, filename: str):
             fps=video.fps or 24
         )
         
-        jobs[job_id]["status"] = "completed"
         jobs[job_id]["video_url"] = f"/download/{output_filename}"
+        jobs[job_id]["status"] = "completed"
         print(f"[{job_id}] Done!")
         
     except Exception as e:
@@ -158,7 +158,7 @@ async def upload_video(background_tasks: BackgroundTasks, file: UploadFile = Fil
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    jobs[job_id] = {"status": "queued", "video_url": None, "error": None}
+    jobs[job_id] = {"status": "queued", "video_url": "", "error": None}
     background_tasks.add_task(process_video_task, job_id, file_path, filename)
     
     return {"job_id": job_id, "status": "queued"}

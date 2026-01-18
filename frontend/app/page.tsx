@@ -61,11 +61,17 @@ export default function Home() {
           console.log("Status:", status);
 
           if (status === 'completed') {
-            clearInterval(pollInterval);
-            setProgress(100);
             const videoPath = statusResp.data.video_url;
-            setVideoUrl(`${apiUrl}${videoPath}`);
-            setUploading(false);
+
+            if (videoPath) {
+              clearInterval(pollInterval);
+              setProgress(100);
+              setVideoUrl(`${apiUrl}${videoPath}`);
+              setUploading(false);
+            } else {
+              console.warn("Status completed but video_url missing, retrying...");
+            }
+
           } else if (status === 'failed') {
             clearInterval(pollInterval);
             setError("Processing failed: " + statusResp.data.error);
