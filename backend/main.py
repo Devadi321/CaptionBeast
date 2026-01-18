@@ -165,7 +165,11 @@ async def download_video(filename: str):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="File not found")
 
+@app.get("/")
+def home():
+    return {"message": "CaptionBeast Backend is Running!", "status": "active"}
+
 if __name__ == "__main__":
-    # Use PORT from environment variable (Render/HF Spaces set this automatically)
-    port = int(os.environ.get("PORT", 8000))
+    # Use PORT from environment variable or default to 7860 (HF default)
+    port = int(os.environ.get("PORT", 7860))
     uvicorn.run(app, host="0.0.0.0", port=port)
