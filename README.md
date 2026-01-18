@@ -2,7 +2,7 @@
 title: Caption Beast Backend
 emoji: 🦁
 colorFrom: yellow
-colorTo: orange
+colorTo: purple
 sdk: docker
 app_port: 7860
 pinned: false
