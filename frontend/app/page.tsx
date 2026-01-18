@@ -233,7 +233,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. All rights reserved. <span className="text-stone-700 ml-2">v1.1</span></p>
       </footer>
     </div>
   );
