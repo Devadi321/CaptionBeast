@@ -231,9 +231,15 @@ export default function Home() {
         )}
       </main>
 
+      {/* Debug Info (Temporary) */}
+      <div className="max-w-4xl mx-auto px-6 mb-8 p-4 bg-gray-900 rounded-lg text-xs font-mono text-gray-400 break-all">
+        <p>Debug Status: {uploading ? 'Uploading/Polling' : 'Idle'}</p>
+        <p>Video URL State: {videoUrl || 'null'}</p>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. All rights reserved. <span className="text-stone-700 ml-2">v1.1</span></p>
+        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. All rights reserved. <span className="text-stone-700 ml-2">v1.2</span></p>
       </footer>
     </div>
   );
