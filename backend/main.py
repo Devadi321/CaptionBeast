@@ -271,7 +271,87 @@ async def upload_video(
     jobs[job_id] = {"status": "queued", "video_url": "", "error": None}
     background_tasks.add_task(process_video_task, job_id, file_path, filename, user_id)
     
-    return {"job_id": job_id, "status": "queued"}
+# ... existing code ...
+
+# STRIPE INTEGRATION
+import stripe
+from config import STRIPE_SECRET_KEY, SUPABASE_SERVICE_KEY
+stripe.api_key = STRIPE_SECRET_KEY
+endpoint_secret = "" # TODO: Add Webhook Secret if verifying signatures (Optional for test mode MVP)
+
+@app.post("/create-checkout-session")
+async def create_checkout_session(tier: str = Form(...), user_id: str = Form(...)):
+    """
+    Create a Stripe Checkout Session for Pro/Business upgrades.
+    """
+    price_id = ""
+    if tier == "pro":
+        price_id = "price_1SrMRoSFVRQo1NynS1A4U5pc"
+    elif tier == "business":
+        price_id = "price_1SrMRpSFVRQo1Nyn2riWneNG"
+    else:
+        raise HTTPException(400, "Invalid tier")
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url='https://caption-beast.vercel.app/?success=true', # Redirect back to app
+            cancel_url='https://caption-beast.vercel.app/?canceled=true',
+            client_reference_id=user_id, # EXTREMELY IMPORTANT: Pass user_id to webhook
+            metadata={
+                "user_id": user_id,
+                "tier": tier
+            }
+        )
+        return {"url": checkout_session.url}
+    except Exception as e:
+        print(f"Stripe Error: {e}")
+        raise HTTPException(500, str(e))
+
+@app.post("/webhook")
+async def stripe_webhook(request: Request):
+    """
+    Handle Stripe events to unlock features.
+    """
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    event = None
+
+    try:
+        event = stripe.Event.construct_from(
+            json.loads(payload), stripe.api_key
+        )
+    except ValueError as e:
+        raise HTTPException(400, "Invalid payload")
+
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        
+        # Fulfill the purchase...
+        user_id = session.get('client_reference_id')
+        tier = session.get('metadata', {}).get('tier', 'pro')
+        customer_id = session.get('customer')
+        
+        print(f"💰 Payment received! Upgrading User {user_id} to {tier}")
+        
+        if user_id:
+            # Grant infinite credits or high limit
+            new_credits = 100 if tier == 'pro' else 1000
+            
+            supabase.table("profiles").update({
+                "tier": tier,
+                "credits": new_credits,
+                "stripe_customer_id": customer_id
+            }).eq("user_id", user_id).execute()
+            
+    return {"status": "success"}
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):

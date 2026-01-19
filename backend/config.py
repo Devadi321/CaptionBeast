@@ -1,6 +1,12 @@
-# Backend Configuration
-# AUTO-GENERATED - DO NOT MODIFY MANUALLY
+import os
+from dotenv import load_dotenv
 
-# Supabase Credentials (Hardcoded for "One-Click" deployment reliability as requested)
-SUPABASE_URL = "https://msyrohrxtzjetclnsdjo.supabase.co"
-SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zeXJvaHJ4dHpqZXRjbG5zZGpvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODgzMjE5MCwiZXhwIjoyMDg0NDA4MTkwfQ.mjAQqMyi6GGeZljbj4NkEyQvi6UioP8vERMNOFQ-k9U"
+load_dotenv()
+
+# Supabase Credentials
+# Defaults are empty strings to prevent startup crashes if envs missing, but will fail at runtime.
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+
+# Stripe Credentials
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")

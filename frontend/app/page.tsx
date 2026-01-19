@@ -109,6 +109,27 @@ export default function Home() {
     }
   };
 
+  const handleUpgrade = async (tier: string) => {
+    if (!userId) return alert("Please sign in to upgrade!");
+
+    try {
+      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+      if (window.location.hostname === 'localhost') apiUrl = 'http://127.0.0.1:7860';
+
+      const formData = new FormData();
+      formData.append("tier", tier);
+      formData.append("user_id", userId);
+
+      const resp = await axios.post(`${apiUrl}/create-checkout-session`, formData);
+      if (resp.data.url) {
+        window.location.href = resp.data.url;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to start checkout");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-950 text-white font-sans selection:bg-yellow-500 selection:text-black">
       {/* Navbar */}
@@ -150,6 +171,60 @@ export default function Home() {
             Generate explosive, word-by-word captions in the style of top creators.
             Just upload your video and let our AI do the magic.
           </p>
+        </div>
+
+        {/* Pricing Section */}
+        <div className="grid md:grid-cols-3 gap-6 mb-20">
+          {/* Free Plan */}
+          <div className="bg-stone-900/50 border border-white/10 p-8 rounded-3xl hover:border-white/20 transition">
+            <h3 className="text-2xl font-bold mb-2">Starter</h3>
+            <p className="text-3xl font-black mb-4">$0 <span className="text-sm font-normal text-stone-500">/mo</span></p>
+            <ul className="space-y-3 mb-8 text-stone-400 text-sm">
+              <li>✓ 3 Free Videos</li>
+              <li>✓ Basic Captions</li>
+              <li>✓ 720p Export</li>
+            </ul>
+            <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition">
+              Current Plan
+            </button>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="relative bg-stone-900 border border-yellow-400 p-8 rounded-3xl shadow-2xl shadow-yellow-400/10 transform scale-105">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+              Most Popular
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Creator Pro</h3>
+            <p className="text-3xl font-black mb-4 text-yellow-400">$15 <span className="text-sm font-normal text-stone-500 text-white">/mo</span></p>
+            <ul className="space-y-3 mb-8 text-stone-300 text-sm">
+              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> Unlimited Videos</li>
+              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> No Watermark</li>
+              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> Priority Processing</li>
+            </ul>
+            <button
+              onClick={() => handleUpgrade("pro")}
+              className="w-full py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-bold transition-transform hover:scale-105 active:scale-95"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+
+          {/* Business Plan */}
+          <div className="bg-stone-900/50 border border-white/10 p-8 rounded-3xl hover:border-white/20 transition">
+            <h3 className="text-2xl font-bold mb-2">Business</h3>
+            <p className="text-3xl font-black mb-4">$50 <span className="text-sm font-normal text-stone-500">/mo</span></p>
+            <ul className="space-y-3 mb-8 text-stone-400 text-sm">
+              <li>✓ API Access</li>
+              <li>✓ 4K Export</li>
+              <li>✓ Bulk Processing</li>
+            </ul>
+            <button
+              onClick={() => handleUpgrade("business")}
+              className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition"
+            >
+              Contact Sales
+            </button>
+          </div>
         </div>
 
         {/* Upload Area - Protected */}
