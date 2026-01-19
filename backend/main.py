@@ -5,6 +5,7 @@ import math
 from typing import List
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import uvicorn
@@ -193,12 +194,7 @@ async def get_status(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@app.get("/download/{filename}")
-async def download_video(filename: str):
-    file_path = os.path.join(OUTPUT_DIR, filename)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    raise HTTPException(status_code=404, detail="File not found")
+# Removed manual /download endpoint as it is now handled by StaticFiles mount
 
 @app.get("/")
 def home():
