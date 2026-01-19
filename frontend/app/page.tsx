@@ -114,7 +114,7 @@ export default function Home() {
       {/* Navbar */}
       <nav className="border-b border-white/10 bg-stone-900/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          import {SignInButton, SignedIn, SignedOut, UserButton} from "@clerk/nextjs";
+          import {SignInButton, SignedIn, SignedOut, UserButton, useAuth} from "@clerk/nextjs";
 
           // ...
 
