@@ -4,7 +4,7 @@ import uuid
 import math
 from typing import List
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -108,13 +108,81 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
     
     return txt_clip
 
+from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from supabase import create_client, Client
+
+# Initialize Supabase (Service Role for Admin Access)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
 # In-memory job store
 jobs = {}
 
-def process_video_task(job_id: str, file_path: str, filename: str):
+def check_credits(user_id: str) -> bool:
+    """
+    Check if user has credits.
+    Returns: True if allowed, False if denied.
+    """
+    if not user_id: return False
+    
+    try:
+        # Check user profile
+        response = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+        
+        # If no profile, create one (Free Tier default)
+        if not response.data:
+            print(f"Creating new profile for {user_id}")
+            supabase.table("profiles").insert({
+                "user_id": user_id, 
+                "email": "unknown@example.com", # We don't have email from token yet, handled later
+                "tier": "free",
+                "credits": 3
+            }).execute()
+            return True
+            
+        profile = response.data[0]
+        credits = profile.get("credits", 0)
+        tier = profile.get("tier", "free")
+        
+        print(f"User {user_id}: Tier={tier}, Credits={credits}")
+        
+        if tier == "free" and credits <= 0:
+            return False
+            
+        return True
+        
+    except Exception as e:
+        print(f"Database Error: {e}")
+        # FAIL SAFE: If DB is down or table missing, Allow it for now to avoid blocking
+        # But log the error.
+        return True
+
+def deduct_credit(user_id: str):
+    try:
+        # Deduct 1 credit for free users
+        # For efficiency, we can do this async or here.
+        # We assume check was done.
+        # We need to explicitly decrement.
+        # Note: RPC is better for atomic updates but this is MVP.
+        
+        response = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
+        if response.data:
+             current = response.data[0].get("credits", 0)
+             if current > 0:
+                 supabase.table("profiles").update({"credits": current - 1}).eq("user_id", user_id).execute()
+                 print(f"Deducted credit for {user_id}. Remaining: {current - 1}")
+    except Exception as e:
+        print(f"Deduct Credit Error: {e}")
+
+
+def process_video_task(job_id: str, file_path: str, filename: str, user_id: str = None):
     print(f"[{job_id}] Processing started for {filename}...")
     jobs[job_id]["status"] = "processing"
     
+    # Optional: Deduct credit HERE if successful, 
+    # OR deduct before starting. Let's deduct here to be nice if it fails.
+    if user_id:
+        deduct_credit(user_id)
+        
     try:
         # Use a safe, sanitized filename for the output to prevent URL encoding issues
         # We ignore the original filename for the output file
@@ -177,7 +245,22 @@ def process_video_task(job_id: str, file_path: str, filename: str):
         jobs[job_id]["error"] = str(e)
 
 @app.post("/upload")
-async def upload_video(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def upload_video(
+    background_tasks: BackgroundTasks, 
+    file: UploadFile = File(...),
+    user_id: str = Form(None) # Receive user_id from frontend
+):
+    # Credit Check
+    if user_id:
+        allowed = check_credits(user_id)
+        if not allowed:
+             raise HTTPException(status_code=402, detail="Out of credits. Upgrade to Pro!")
+    else:
+        # If no user_id provided (legacy/dev), we allow it for now or block.
+        # For V3.0, we block.
+        # raise HTTPException(status_code=401, detail="Authentication required.")
+        pass # Allow for dev testing
+
     job_id = str(uuid.uuid4())
     filename = f"{job_id}_{file.filename}"
     file_path = os.path.join(UPLOAD_DIR, filename)
@@ -186,7 +269,7 @@ async def upload_video(background_tasks: BackgroundTasks, file: UploadFile = Fil
         shutil.copyfileobj(file.file, buffer)
         
     jobs[job_id] = {"status": "queued", "video_url": "", "error": None}
-    background_tasks.add_task(process_video_task, job_id, file_path, filename)
+    background_tasks.add_task(process_video_task, job_id, file_path, filename, user_id)
     
     return {"job_id": job_id, "status": "queued"}
 

@@ -11,7 +11,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0); // Fake progress for improved UX
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { userId } = useAuth(); // Clerk Hook
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -37,6 +37,9 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append("file", file);
+    if (userId) {
+      formData.append("user_id", userId);
+    }
 
     try {
       // Auto-detect API URL: Use localhost if on localhost, otherwise prod
