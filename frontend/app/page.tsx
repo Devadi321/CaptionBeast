@@ -69,14 +69,24 @@ export default function Home() {
 
           if (status === 'completed') {
             const videoPath = statusResp.data.video_url;
+            console.log("Completed! Video Path:", videoPath);
 
-            if (videoPath) {
+            // Valid path must be a string and longer than 5 chars
+            if (videoPath && typeof videoPath === 'string' && videoPath.length > 5) {
               clearInterval(pollInterval);
               setProgress(100);
-              setVideoUrl(`${apiUrl}${videoPath}`);
+
+              // Ensure no double slashes if API URL ends with slash
+              const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+              const cleanVideoPath = videoPath.startsWith('/') ? videoPath : `/${videoPath}`;
+
+              const finalUrl = `${cleanApiUrl}${cleanVideoPath}`;
+              console.log("Final URL:", finalUrl);
+              setVideoUrl(finalUrl);
               setUploading(false);
             } else {
-              console.warn("Status completed but video_url missing, retrying...");
+              console.warn("Status completed but video_url invalid, retrying...", videoPath);
+              // Do not clear interval, keep polling until backend creates the link
             }
 
           } else if (status === 'failed') {
@@ -105,7 +115,7 @@ export default function Home() {
             <div className="bg-yellow-400 p-1.5 rounded-lg rotate-3 group-hover:rotate-6 transition">
               <Sparkles className="w-5 h-5 text-black fill-black" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast</span></span>
+            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v3.0</span></span>
           </div>
           <div className="text-sm text-stone-400">
             For Viral Shorts
