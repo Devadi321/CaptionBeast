@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     ghostscript \
     fonts-liberation \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Download Anton font (Impact alternative)
+RUN mkdir -p /usr/share/fonts/truetype/google-fonts && \
+    wget -O /usr/share/fonts/truetype/google-fonts/Anton-Regular.ttf https://github.com/google/fonts/raw/main/ofl/anton/Anton-Regular.ttf
 
 # Fix ImageMagick policy
 RUN sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml || true

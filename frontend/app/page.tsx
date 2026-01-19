@@ -39,7 +39,14 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+      // Auto-detect API URL: Use localhost if on localhost, otherwise prod
+      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        // If we are running locally, default to local backend (unless env var is explicitly set to something else)
+        // We assume local backend runs on 7860
+        apiUrl = 'http://127.0.0.1:7860';
+      }
 
       // 1. Upload and get Job ID
       console.log("Starting upload...");

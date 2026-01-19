@@ -54,11 +54,32 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
     """
     # MoviePy 2.x changes: TextClip.list('font') might not work or return different results.
     # We will just stick to a standard font.
+    # Font selection: Try to match "Impact" or fall back to system defaults
+    # On macOS, ImageMagick/MoviePy sometimes struggles with just "Impact"
     font = "Impact"
+    if os.name == 'posix': # Linux/Mac
+        # Common locations for fonts
+        potential_fonts = [
+            "Impact", 
+            "/Library/Fonts/Impact.ttf", 
+            "/System/Library/Fonts/Impact.ttf", 
+            "/usr/share/fonts/truetype/msttcorefonts/Impact.ttf",
+            "Arial-Bold",
+            "/Library/Fonts/Arial Bold.ttf",
+            "Helvetica-Bold"
+        ]
+        for f in potential_fonts:
+            # Simple check if file exists (if path) or assume name is valid
+            if f.startswith("/") and os.path.exists(f):
+                font = f
+                break
     
+    # Check for our downloaded Anton font (Hugging Face / Docker specific)
+    anton_path = "/usr/share/fonts/truetype/google-fonts/Anton-Regular.ttf"
+    if os.path.exists(anton_path):
+        font = anton_path
+            
     # Calculate more dynamic font size based on video width
-    # Standard Shorts width is 1080. 
-    # Let's aim for ~13% of width for font height? (Big & Bold)
     fontsize = int(video_width * 0.13) if video_width else 120
     if fontsize < 90: fontsize = 90 # Minimum size
     
