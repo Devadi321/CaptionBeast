@@ -112,7 +112,9 @@ def process_video_task(job_id: str, file_path: str, filename: str):
     jobs[job_id]["status"] = "processing"
     
     try:
-        output_filename = f"processed_{filename}"
+        # Use a safe, sanitized filename for the output to prevent URL encoding issues
+        # We ignore the original filename for the output file
+        output_filename = f"processed_{job_id}.mp4"
         output_path = os.path.join(OUTPUT_DIR, output_filename)
         
         # 1. Transcribe

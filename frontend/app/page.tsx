@@ -209,6 +209,13 @@ export default function Home() {
                   src={videoUrl}
                   controls
                   className="w-full h-full object-contain"
+                  onError={(e) => {
+                    console.error("Video load failed", e);
+                    // Force a reload of the element or show a helpful message
+                    const target = e.target as HTMLVideoElement;
+                    target.style.border = "2px solid red";
+                    alert(`Error loading video from: ${videoUrl}\n\nTry the 'Download Video' button instead.`);
+                  }}
                 />
               </div>
             </div>
