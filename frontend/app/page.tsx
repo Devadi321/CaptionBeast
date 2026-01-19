@@ -143,7 +143,7 @@ export default function Home() {
             <div className="bg-yellow-400 p-1.5 rounded-lg rotate-3 group-hover:rotate-6 transition">
               <Sparkles className="w-5 h-5 text-black fill-black" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v3.0</span></span>
+            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v4.0</span></span>
           </div>
 
           <div className="flex items-center gap-4">
