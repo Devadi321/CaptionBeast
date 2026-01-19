@@ -111,14 +111,26 @@ export default function Home() {
       {/* Navbar */}
       <nav className="border-b border-white/10 bg-stone-900/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          import {SignInButton, SignedIn, SignedOut, UserButton} from "@clerk/nextjs";
+
+          // ...
+
           <div className="flex items-center gap-2">
             <div className="bg-yellow-400 p-1.5 rounded-lg rotate-3 group-hover:rotate-6 transition">
               <Sparkles className="w-5 h-5 text-black fill-black" />
             </div>
             <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v3.0</span></span>
           </div>
-          <div className="text-sm text-stone-400">
-            For Viral Shorts
+
+          <div className="flex items-center gap-4">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="text-sm font-medium hover:text-white transition">Sign In</button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </div>
       </nav>
@@ -137,71 +149,85 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Upload Area */}
-        {!videoUrl && (
-          <div
-            className={clsx(
-              "border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 cursor-pointer bg-stone-900/50 hover:bg-stone-900",
-              file ? "border-yellow-400/50 bg-yellow-400/5" : "border-white/10 hover:border-white/30"
-            )}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="video/*"
-              onChange={handleFileChange}
-            />
+        {/* Upload Area - Protected */}
+        <SignedOut>
+          <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 text-center bg-stone-900/50">
+            <p className="text-2xl font-bold mb-4">Join to go viral</p>
+            <p className="text-stone-400 mb-8 max-w-md mx-auto">Sign in to unlock AI captioning, unlimited downloads, and pro features.</p>
+            <SignInButton mode="modal">
+              <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95">
+                Sign In to Create
+              </button>
+            </SignInButton>
+          </div>
+        </SignedOut>
 
-            <div className="flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-stone-800 flex items-center justify-center mb-2">
+        <SignedIn>
+          {!videoUrl && (
+            <div
+              className={clsx(
+                "border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 cursor-pointer bg-stone-900/50 hover:bg-stone-900",
+                file ? "border-yellow-400/50 bg-yellow-400/5" : "border-white/10 hover:border-white/30"
+              )}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="video/*"
+                onChange={handleFileChange}
+              />
+
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-stone-800 flex items-center justify-center mb-2">
+                  {uploading ? (
+                    <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
+                  ) : file ? (
+                    <FileVideo className="w-8 h-8 text-yellow-400" />
+                  ) : (
+                    <Upload className="w-8 h-8 text-stone-400" />
+                  )}
+                </div>
+
                 {uploading ? (
-                  <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
+                  <div className="w-full max-w-sm space-y-3">
+                    <p className="text-lg font-medium animate-pulse">Processing your video...</p>
+                    <p className="text-sm text-stone-500">Transcribing audio • Generating captions • Rendering</p>
+                    <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-yellow-400 transition-all duration-500 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
                 ) : file ? (
-                  <FileVideo className="w-8 h-8 text-yellow-400" />
+                  <div className="space-y-4">
+                    <p className="text-2xl font-semibold">{file.name}</p>
+                    <p className="text-stone-400 text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpload();
+                      }}
+                      className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95"
+                    >
+                      Generate Captions
+                    </button>
+                    <p className="text-xs text-stone-500 mt-2">Click change file</p>
+                  </div>
                 ) : (
-                  <Upload className="w-8 h-8 text-stone-400" />
+                  <div className="space-y-2">
+                    <p className="text-xl font-semibold">Click to upload or drag and drop</p>
+                    <p className="text-stone-500">MP4, MOV, or WEBM (Max 50MB reccomended)</p>
+                  </div>
                 )}
               </div>
-
-              {uploading ? (
-                <div className="w-full max-w-sm space-y-3">
-                  <p className="text-lg font-medium animate-pulse">Processing your video...</p>
-                  <p className="text-sm text-stone-500">Transcribing audio • Generating captions • Rendering</p>
-                  <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-yellow-400 transition-all duration-500 ease-out"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : file ? (
-                <div className="space-y-4">
-                  <p className="text-2xl font-semibold">{file.name}</p>
-                  <p className="text-stone-400 text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUpload();
-                    }}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95"
-                  >
-                    Generate Captions
-                  </button>
-                  <p className="text-xs text-stone-500 mt-2">Click change file</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-xl font-semibold">Click to upload or drag and drop</p>
-                  <p className="text-stone-500">MP4, MOV, or WEBM (Max 50MB reccomended)</p>
-                </div>
-              )}
             </div>
-          </div>
-        )}
+          )}
+        </SignedIn>
 
         {/* Error Message */}
         {error && (
