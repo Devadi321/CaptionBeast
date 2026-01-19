@@ -25,6 +25,9 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 app = FastAPI()
 
+# Mount StaticFiles for robust video serving (Supports Range headers for playback)
+app.mount("/download", StaticFiles(directory=OUTPUT_DIR), name="download")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
