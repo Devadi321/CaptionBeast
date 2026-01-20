@@ -6,6 +6,7 @@ import { Upload, FileVideo, Download, Loader2, Sparkles, Play } from "lucide-rea
 import clsx from "clsx";
 import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import AdBanner from "@/components/AdBanner";
+import SocialShare from "@/components/SocialShare";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -262,86 +263,90 @@ export default function Home() {
                   <Download className="w-5 h-5" />
                   Download Video
                 </a>
-              </div>
+              </a>
             </div>
+
+            <SocialShare />
           </div>
-        )}
-
-        {/* SEO & Features Section */}
-        <div className="mt-32 border-t border-white/10 pt-20">
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
-              <h3 className="text-xl font-bold mb-4 text-white">Free AI Caption Generator</h3>
-              <p className="text-stone-400 leading-relaxed">
-                Stop paying for expensive tools. CaptionBeast offers professional grade <strong className="text-stone-300">auto-subtitles</strong> completely free.
-                Perfect for TikTok, Instagram Reels, and YouTube Shorts.
-              </p>
-            </div>
-            <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
-              <h3 className="text-xl font-bold mb-4 text-white">No Watermark & No Login</h3>
-              <p className="text-stone-400 leading-relaxed">
-                Download your captioned videos instantly without annoying watermarks or forced sign-ups.
-                We believe in quick, frictionless video editing.
-              </p>
-            </div>
-            <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
-              <h3 className="text-xl font-bold mb-4 text-white">Viral "Hormozi" Style</h3>
-              <p className="text-stone-400 leading-relaxed">
-                Get that explosive word-by-word animation style made famous by top creators.
-                Our AI ensures perfect timing and engagement.
-              </p>
-            </div>
           </div>
+  )
+}
 
-          <article className="prose prose-invert prose-lg mx-auto text-stone-400">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">How to Add Captions to Video for Free?</h2>
-            <div className="space-y-6">
-              <p>
-                Adding captions to your videos is the #1 way to increase retention and engagement.
-                With CaptionBeast, you don't need complex software like Adobe Premiere or payments for tools like OpusClip.
-              </p>
-              <ol className="list-decimal pl-6 space-y-2">
-                <li><strong>Upload your video</strong>: We support MP4, MOV, and WEBM formats up to 50MB.</li>
-                <li><strong>Wait for AI processing</strong>: Our advanced transcription engine (OpenAI Whisper) detects speech automatically.</li>
-                <li><strong>Download result</strong>: Get your fully edited video with burned-in subtitles, ready to post.</li>
-              </ol>
-              <p>
-                Whether you are a creator, marketer, or business owner, our <em>free caption generator</em> helps you
-                reach a wider audience by making your content accessible and engaging, even with sound off.
-              </p>
-            </div>
-          </article>
-
-          {/* JSON-LD Structured Data for Google */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                "name": "CaptionBeast",
-                "applicationCategory": "MultimediaApplication",
-                "operatingSystem": "Web",
-                "offers": {
-                  "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "USD"
-                },
-                "description": "Free AI video caption generator. Add viral subtitles to your videos instantly.",
-                "aggregateRating": {
-                  "@type": "AggregateRating",
-                  "ratingValue": "4.9",
-                  "ratingCount": "1250"
-                }
-              })
-            }}
-          />
-        </div>
-      </main>
-
-      <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. <span className="text-stone-700 ml-2">v5.0 (Ad-Supported)</span></p>
-      </footer>
+{/* SEO & Features Section */ }
+<div className="mt-32 border-t border-white/10 pt-20">
+  <div className="grid md:grid-cols-3 gap-8 mb-20">
+    <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
+      <h3 className="text-xl font-bold mb-4 text-white">Free AI Caption Generator</h3>
+      <p className="text-stone-400 leading-relaxed">
+        Stop paying for expensive tools. CaptionBeast offers professional grade <strong className="text-stone-300">auto-subtitles</strong> completely free.
+        Perfect for TikTok, Instagram Reels, and YouTube Shorts.
+      </p>
     </div>
+    <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
+      <h3 className="text-xl font-bold mb-4 text-white">No Watermark & No Login</h3>
+      <p className="text-stone-400 leading-relaxed">
+        Download your captioned videos instantly without annoying watermarks or forced sign-ups.
+        We believe in quick, frictionless video editing.
+      </p>
+    </div>
+    <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
+      <h3 className="text-xl font-bold mb-4 text-white">Viral "Hormozi" Style</h3>
+      <p className="text-stone-400 leading-relaxed">
+        Get that explosive word-by-word animation style made famous by top creators.
+        Our AI ensures perfect timing and engagement.
+      </p>
+    </div>
+  </div>
+
+  <article className="prose prose-invert prose-lg mx-auto text-stone-400">
+    <h2 className="text-3xl font-bold text-white text-center mb-8">How to Add Captions to Video for Free?</h2>
+    <div className="space-y-6">
+      <p>
+        Adding captions to your videos is the #1 way to increase retention and engagement.
+        With CaptionBeast, you don't need complex software like Adobe Premiere or payments for tools like OpusClip.
+      </p>
+      <ol className="list-decimal pl-6 space-y-2">
+        <li><strong>Upload your video</strong>: We support MP4, MOV, and WEBM formats up to 50MB.</li>
+        <li><strong>Wait for AI processing</strong>: Our advanced transcription engine (OpenAI Whisper) detects speech automatically.</li>
+        <li><strong>Download result</strong>: Get your fully edited video with burned-in subtitles, ready to post.</li>
+      </ol>
+      <p>
+        Whether you are a creator, marketer, or business owner, our <em>free caption generator</em> helps you
+        reach a wider audience by making your content accessible and engaging, even with sound off.
+      </p>
+    </div>
+  </article>
+
+  {/* JSON-LD Structured Data for Google */}
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "CaptionBeast",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Free AI video caption generator. Add viral subtitles to your videos instantly.",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "1250"
+        }
+      })
+    }}
+  />
+</div>
+      </main >
+
+  <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
+    <p>&copy; {new Date().getFullYear()} CaptionBeast AI. <span className="text-stone-700 ml-2">v5.0 (Ad-Supported)</span></p>
+  </footer>
+    </div >
   );
 }
