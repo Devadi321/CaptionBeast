@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import axios from "axios";
 import { Upload, FileVideo, Download, Loader2, Sparkles, Play } from "lucide-react";
 import clsx from "clsx";
+import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,6 +13,7 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { userId } = useAuth(); // Clerk Hook
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -135,9 +137,6 @@ export default function Home() {
       {/* Navbar */}
       <nav className="border-b border-white/10 bg-stone-900/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          import {SignInButton, SignedIn, SignedOut, UserButton, useAuth} from "@clerk/nextjs";
-
-          // ...
 
           <div className="flex items-center gap-2">
             <div className="bg-yellow-400 p-1.5 rounded-lg rotate-3 group-hover:rotate-6 transition">
