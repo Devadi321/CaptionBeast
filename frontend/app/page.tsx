@@ -272,7 +272,7 @@ export default function Home() {
 
                 <a
                   href={videoUrl}
-                  download={`caption-beast-viral-${Date.now()}.mp4`}
+                  download="caption-beast-viral.mp4"
                   className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-yellow-400/20"
                 >
                   <Download className="w-5 h-5" />

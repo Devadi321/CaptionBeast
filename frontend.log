@@ -206,3 +206,75 @@ Expected '</', got 'jsx text (
   digest: '1027489504'
 }
  GET / 500 in 65ms (compile: 3ms, proxy.ts: 30ms, render: 32ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 911ms (compile: 72ms, proxy.ts: 776ms, render: 63ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 63ms (compile: 4ms, proxy.ts: 15ms, render: 44ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 60ms (compile: 6ms, proxy.ts: 10ms, render: 44ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 46ms (compile: 4ms, proxy.ts: 12ms, render: 31ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 66ms (compile: 4ms, proxy.ts: 15ms, render: 48ms)
+⨯ ReferenceError: useEffect is not defined
+    at Home (app/page.tsx:21:3)
+  19 |
+  20 |   // Wake up server on load
+> 21 |   useEffect(() => {
+     |   ^
+  22 |     let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+  23 |     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  24 |       apiUrl = 'http://127.0.0.1:7860'; {
+  digest: '2137530470'
+}
+ GET / 500 in 57ms (compile: 4ms, proxy.ts: 14ms, render: 39ms)
