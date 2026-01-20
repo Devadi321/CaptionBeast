@@ -1,0 +1,114 @@
+
+> frontend@0.1.0 dev
+> next dev -p 3002
+
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://10.138.211.165:3002
+- Environments: .env.local
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 889ms
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 1009ms (compile: 944ms, proxy.ts: 8ms, render: 58ms)
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 41ms (compile: 19ms, proxy.ts: 16ms, render: 6ms)
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 32ms (compile: 16ms, proxy.ts: 11ms, render: 5ms)
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 34ms (compile: 15ms, proxy.ts: 11ms, render: 8ms)
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 28ms (compile: 12ms, proxy.ts: 9ms, render: 7ms)
+⨯ ./app/page.tsx:266:19
+Parsing ecmascript source code failed
+[0m [90m 264 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 265 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 266 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 267 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 268 |[39m
+ [90m 269 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 270 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 26ms (compile: 12ms, proxy.ts: 8ms, render: 5ms)

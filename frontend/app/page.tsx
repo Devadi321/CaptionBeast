@@ -17,6 +17,17 @@ export default function Home() {
   const { userId } = useAuth(); // Optional now
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Wake up server on load
+  useEffect(() => {
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      apiUrl = 'http://127.0.0.1:7860';
+    }
+    // Fire and forget ping
+    console.log("Pinging server to wake up...");
+    axios.get(apiUrl).catch(() => { });
+  }, []);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -93,7 +104,11 @@ export default function Home() {
 
     } catch (err: any) {
       console.error(err);
-      setError("Failed to start upload. " + (err.response?.data?.detail || err.message));
+      if (err.response && (err.response.status === 503 || err.response.status === 504)) {
+        setError("😴 The free server is sleeping! It is waking up now. Please wait 1 minute and try again.");
+      } else {
+        setError("Failed to start upload. " + (err.response?.data?.detail || err.message));
+      }
       setUploading(false);
     }
   };
