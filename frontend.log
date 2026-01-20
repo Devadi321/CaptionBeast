@@ -147,3 +147,38 @@ Expected '</', got 'jsx text (
 
 
  GET / 500 in 28ms (compile: 15ms, proxy.ts: 6ms, render: 7ms)
+⨯ ./app/page.tsx:281:19
+Parsing ecmascript source code failed
+[0m [90m 279 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 280 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 281 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 282 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 283 |[39m
+ [90m 284 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 285 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 1894ms (compile: 58ms, proxy.ts: 1831ms, render: 5ms)
+⨯ ./app/page.tsx:281:19
+Parsing ecmascript source code failed
+[0m [90m 279 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 280 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 281 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 282 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 283 |[39m
+ [90m 284 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 285 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 33ms (compile: 14ms, proxy.ts: 11ms, render: 8ms)
+✓ Compiled in 120ms
