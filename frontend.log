@@ -130,3 +130,20 @@ Expected '</', got 'jsx text (
 
 
  GET / 500 in 1592ms (compile: 21ms, proxy.ts: 1567ms, render: 4ms)
+⨯ ./app/page.tsx:281:19
+Parsing ecmascript source code failed
+[0m [90m 279 |[39m                   [33mDownload[39m [33mVideo[39m
+ [90m 280 |[39m                 [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+[31m[1m>[22m[39m[90m 281 |[39m               [33m<[39m[33m/[39m[33ma[39m[33m>[39m
+ [90m     |[39m                   [31m[1m^[22m[39m
+[31m[1m>[22m[39m[90m 282 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 283 |[39m
+ [90m 284 |[39m             [33m<[39m[33mSocialShare[39m [33m/[39m[33m>[39m
+ [90m 285 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+
+Expected '</', got 'jsx text (
+            )'
+
+
+ GET / 500 in 28ms (compile: 15ms, proxy.ts: 6ms, render: 7ms)
