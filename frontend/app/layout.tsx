@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 
 import { Inter, Roboto_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Inter({
@@ -26,6 +27,14 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_ID || "ca-pub-1920333630540777"}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
