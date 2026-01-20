@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface AdBannerProps {
     slotId?: string;
@@ -7,8 +7,15 @@ interface AdBannerProps {
 }
 
 export default function AdBanner({ slotId, format = 'auto', className = '' }: AdBannerProps) {
-    // In production, this would inject the Google AdSense script.
-    // For now, we show a placeholder in development, or if slotId is missing.
+    useEffect(() => {
+        try {
+            if (slotId) {
+                ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+            }
+        } catch (e) {
+            console.error("AdSense Verification Error (Localhost ignore):", e);
+        }
+    }, [slotId]);
 
     if (!slotId) {
         return (
@@ -20,16 +27,12 @@ export default function AdBanner({ slotId, format = 'auto', className = '' }: Ad
 
     return (
         <div className={`overflow-hidden rounded-xl ${className}`}>
-            {/* Google AdSense Implementation */}
             <ins className="adsbygoogle"
                 style={{ display: 'block' }}
-                data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_ID}
+                data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_ID || "ca-pub-1920333630540777"}
                 data-ad-slot={slotId}
                 data-ad-format={format}
                 data-full-width-responsive="true"></ins>
-            <script>
-                {`(adsbygoogle = window.adsbygoogle || []).push({});`}
-            </script>
         </div>
     );
 }
