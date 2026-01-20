@@ -5,14 +5,15 @@ import axios from "axios";
 import { Upload, FileVideo, Download, Loader2, Sparkles, Play } from "lucide-react";
 import clsx from "clsx";
 import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
+import AdBanner from "@/components/AdBanner";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0); // Fake progress for improved UX
+  const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = useAuth(); // Clerk Hook
+  const { userId } = useAuth(); // Optional now
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,12 +45,8 @@ export default function Home() {
     }
 
     try {
-      // Auto-detect API URL: Use localhost if on localhost, otherwise prod
       let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
-
       if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        // If we are running locally, default to local backend (unless env var is explicitly set to something else)
-        // We assume local backend runs on 7860
         apiUrl = 'http://127.0.0.1:7860';
       }
 
@@ -65,35 +62,24 @@ export default function Home() {
       // 2. Poll for status
       const pollInterval = setInterval(async () => {
         try {
-          // Slowly animate progress while waiting
           setProgress((prev) => (prev < 90 ? prev + 1 : prev));
 
           const statusResp = await axios.get(`${apiUrl}/status/${jobId}`);
           const status = statusResp.data.status;
-          console.log("Status:", status);
 
           if (status === 'completed') {
             const videoPath = statusResp.data.video_url;
-            console.log("Completed! Video Path:", videoPath);
-
-            // Valid path must be a string and longer than 5 chars
             if (videoPath && typeof videoPath === 'string' && videoPath.length > 5) {
               clearInterval(pollInterval);
               setProgress(100);
 
-              // Ensure no double slashes if API URL ends with slash
               const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
               const cleanVideoPath = videoPath.startsWith('/') ? videoPath : `/${videoPath}`;
-
               const finalUrl = `${cleanApiUrl}${cleanVideoPath}`;
-              console.log("Final URL:", finalUrl);
+
               setVideoUrl(finalUrl);
               setUploading(false);
-            } else {
-              console.warn("Status completed but video_url invalid, retrying...", videoPath);
-              // Do not clear interval, keep polling until backend creates the link
             }
-
           } else if (status === 'failed') {
             clearInterval(pollInterval);
             setError("Processing failed: " + statusResp.data.error);
@@ -111,38 +97,16 @@ export default function Home() {
     }
   };
 
-  const handleUpgrade = async (tier: string) => {
-    if (!userId) return alert("Please sign in to upgrade!");
-
-    try {
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
-      if (window.location.hostname === 'localhost') apiUrl = 'http://127.0.0.1:7860';
-
-      const formData = new FormData();
-      formData.append("tier", tier);
-      formData.append("user_id", userId);
-
-      const resp = await axios.post(`${apiUrl}/create-checkout-session`, formData);
-      if (resp.data.url) {
-        window.location.href = resp.data.url;
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to start checkout");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-stone-950 text-white font-sans selection:bg-yellow-500 selection:text-black">
       {/* Navbar */}
       <nav className="border-b border-white/10 bg-stone-900/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-
           <div className="flex items-center gap-2">
             <div className="bg-yellow-400 p-1.5 rounded-lg rotate-3 group-hover:rotate-6 transition">
               <Sparkles className="w-5 h-5 text-black fill-black" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v4.0</span></span>
+            <span className="text-xl font-bold tracking-tight">Caption<span className="text-yellow-400">Beast v5.0</span></span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -159,6 +123,11 @@ export default function Home() {
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-20">
+        {/* Ad Slot 1: Top of Content */}
+        <div className="mb-12">
+          <AdBanner slotId="top-banner-slot" className="w-full h-24 bg-stone-900/50" />
+        </div>
+
         <div className="text-center mb-16 space-y-4">
           <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white mb-6">
             Make your videos <br />
@@ -168,143 +137,80 @@ export default function Home() {
           </h1>
           <p className="text-stone-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
             Generate explosive, word-by-word captions in the style of top creators.
-            Just upload your video and let our AI do the magic.
+            <br /> <span className="text-yellow-400 font-bold">100% Free. Powered by Ads.</span>
           </p>
         </div>
 
-        {/* Pricing Section */}
-        <div className="grid md:grid-cols-3 gap-6 mb-20">
-          {/* Free Plan */}
-          <div className="bg-stone-900/50 border border-white/10 p-8 rounded-3xl hover:border-white/20 transition">
-            <h3 className="text-2xl font-bold mb-2">Starter</h3>
-            <p className="text-3xl font-black mb-4">$0 <span className="text-sm font-normal text-stone-500">/mo</span></p>
-            <ul className="space-y-3 mb-8 text-stone-400 text-sm">
-              <li>✓ 3 Free Videos</li>
-              <li>✓ Basic Captions</li>
-              <li>✓ 720p Export</li>
-            </ul>
-            <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition">
-              Current Plan
-            </button>
-          </div>
+        {/* Upload Area - Always Visible (No Authentication Gate) */}
+        {!videoUrl && (
+          <div
+            className={clsx(
+              "border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 cursor-pointer bg-stone-900/50 hover:bg-stone-900",
+              file ? "border-yellow-400/50 bg-yellow-400/5" : "border-white/10 hover:border-white/30"
+            )}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="video/*"
+              onChange={handleFileChange}
+            />
 
-          {/* Pro Plan */}
-          <div className="relative bg-stone-900 border border-yellow-400 p-8 rounded-3xl shadow-2xl shadow-yellow-400/10 transform scale-105">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-              Most Popular
-            </div>
-            <h3 className="text-2xl font-bold mb-2">Creator Pro</h3>
-            <p className="text-3xl font-black mb-4 text-yellow-400">$15 <span className="text-sm font-normal text-stone-500 text-white">/mo</span></p>
-            <ul className="space-y-3 mb-8 text-stone-300 text-sm">
-              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> Unlimited Videos</li>
-              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> No Watermark</li>
-              <li className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" /> Priority Processing</li>
-            </ul>
-            <button
-              onClick={() => handleUpgrade("pro")}
-              className="w-full py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-bold transition-transform hover:scale-105 active:scale-95"
-            >
-              Upgrade to Pro
-            </button>
-          </div>
-
-          {/* Business Plan */}
-          <div className="bg-stone-900/50 border border-white/10 p-8 rounded-3xl hover:border-white/20 transition">
-            <h3 className="text-2xl font-bold mb-2">Business</h3>
-            <p className="text-3xl font-black mb-4">$50 <span className="text-sm font-normal text-stone-500">/mo</span></p>
-            <ul className="space-y-3 mb-8 text-stone-400 text-sm">
-              <li>✓ API Access</li>
-              <li>✓ 4K Export</li>
-              <li>✓ Bulk Processing</li>
-            </ul>
-            <button
-              onClick={() => handleUpgrade("business")}
-              className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white/5 transition"
-            >
-              Contact Sales
-            </button>
-          </div>
-        </div>
-
-        {/* Upload Area - Protected */}
-        <SignedOut>
-          <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 text-center bg-stone-900/50">
-            <p className="text-2xl font-bold mb-4">Join to go viral</p>
-            <p className="text-stone-400 mb-8 max-w-md mx-auto">Sign in to unlock AI captioning, unlimited downloads, and pro features.</p>
-            <SignInButton mode="modal">
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95">
-                Sign In to Create
-              </button>
-            </SignInButton>
-          </div>
-        </SignedOut>
-
-        <SignedIn>
-          {!videoUrl && (
-            <div
-              className={clsx(
-                "border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 cursor-pointer bg-stone-900/50 hover:bg-stone-900",
-                file ? "border-yellow-400/50 bg-yellow-400/5" : "border-white/10 hover:border-white/30"
-              )}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="video/*"
-                onChange={handleFileChange}
-              />
-
-              <div className="flex flex-col items-center justify-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-stone-800 flex items-center justify-center mb-2">
-                  {uploading ? (
-                    <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
-                  ) : file ? (
-                    <FileVideo className="w-8 h-8 text-yellow-400" />
-                  ) : (
-                    <Upload className="w-8 h-8 text-stone-400" />
-                  )}
-                </div>
-
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-stone-800 flex items-center justify-center mb-2">
                 {uploading ? (
-                  <div className="w-full max-w-sm space-y-3">
-                    <p className="text-lg font-medium animate-pulse">Processing your video...</p>
-                    <p className="text-sm text-stone-500">Transcribing audio • Generating captions • Rendering</p>
-                    <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-yellow-400 transition-all duration-500 ease-out"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
+                  <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
                 ) : file ? (
-                  <div className="space-y-4">
-                    <p className="text-2xl font-semibold">{file.name}</p>
-                    <p className="text-stone-400 text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUpload();
-                      }}
-                      className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95"
-                    >
-                      Generate Captions
-                    </button>
-                    <p className="text-xs text-stone-500 mt-2">Click change file</p>
-                  </div>
+                  <FileVideo className="w-8 h-8 text-yellow-400" />
                 ) : (
-                  <div className="space-y-2">
-                    <p className="text-xl font-semibold">Click to upload or drag and drop</p>
-                    <p className="text-stone-500">MP4, MOV, or WEBM (Max 50MB reccomended)</p>
-                  </div>
+                  <Upload className="w-8 h-8 text-stone-400" />
                 )}
               </div>
+
+              {uploading ? (
+                <div className="w-full max-w-sm space-y-3">
+                  <p className="text-lg font-medium animate-pulse">Processing your video...</p>
+                  <p className="text-sm text-stone-500">Transcribing audio • Generating captions • Rendering</p>
+                  <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-yellow-400 transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              ) : file ? (
+                <div className="space-y-4">
+                  <p className="text-2xl font-semibold">{file.name}</p>
+                  <p className="text-stone-400 text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpload();
+                    }}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg transition-transform hover:scale-105 active:scale-95"
+                  >
+                    Generate Captions
+                  </button>
+                  <p className="text-xs text-stone-500 mt-2">Click change file</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xl font-semibold">Click to upload or drag and drop</p>
+                  <p className="text-stone-500">MP4, MOV, or WEBM (Max 50MB reccomended)</p>
+                </div>
+              )}
             </div>
-          )}
-        </SignedIn>
+          </div>
+        )}
+
+        {/* Ad Slot 2: Below Upload */}
+        <div className="mt-12 mb-12">
+          <AdBanner slotId="middle-banner-slot" className="w-full h-32 bg-stone-900/50" />
+        </div>
 
         {/* Error Message */}
         {error && (
@@ -324,7 +230,6 @@ export default function Home() {
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     console.error("Video load failed", e);
-                    // Force a reload of the element or show a helpful message
                     const target = e.target as HTMLVideoElement;
                     target.style.border = "2px solid red";
                     alert(`Error loading video from: ${videoUrl}\n\nTry the 'Download Video' button instead.`);
@@ -333,34 +238,38 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => {
-                  setVideoUrl(null);
-                  setFile(null);
-                  setProgress(0);
-                }}
-                className="px-6 py-3 rounded-xl font-medium text-stone-300 hover:text-white hover:bg-white/5 transition"
-              >
-                Create Another
-              </button>
+            <div className="flex flex-col items-center gap-6">
+              {/* Ad Slot 3: Near Download */}
+              <AdBanner slotId="download-banner-slot" className="w-full max-w-md h-24 bg-stone-900/50" />
 
-              <a
-                href={videoUrl}
-                download={`caption-beast-${Date.now()}.mp4`}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-yellow-400/20"
-              >
-                <Download className="w-5 h-5" />
-                Download Video
-              </a>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setVideoUrl(null);
+                    setFile(null);
+                    setProgress(0);
+                  }}
+                  className="px-6 py-3 rounded-xl font-medium text-stone-300 hover:text-white hover:bg-white/5 transition"
+                >
+                  Create Another
+                </button>
+
+                <a
+                  href={videoUrl}
+                  download={`caption-beast-viral-${Date.now()}.mp4`}
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-xl font-bold text-lg inline-flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-yellow-400/20"
+                >
+                  <Download className="w-5 h-5" />
+                  Download Video
+                </a>
+              </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. All rights reserved. <span className="text-stone-700 ml-2">v4.0</span></p>
+        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. <span className="text-stone-700 ml-2">v5.0 (Ad-Supported)</span></p>
       </footer>
     </div>
   );

@@ -7,3 +7,8 @@ backend/uploads/*
 backend/outputs/*
 !backend/uploads/.gitkeep
 !backend/outputs/.gitkeep
+!backend/outputs/.gitkeep
+
+# Local Version
+local_version/
+caption_app_local/

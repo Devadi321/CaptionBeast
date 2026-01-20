@@ -6,6 +6,4 @@ openai-whisper
 torch
 numpy
 imageio-ffmpeg
-supabase
-stripe
 python-dotenv

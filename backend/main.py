@@ -2,9 +2,10 @@ import os
 import shutil
 import uuid
 import math
+import random
 from typing import List
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -12,8 +13,6 @@ import uvicorn
 
 import whisper
 from moviepy import VideoFileClip, TextClip, CompositeVideoClip, ColorClip, TextClip
-# from moviepy.common import FailedMoviePyError # invalid in 2.x
-
 
 # Define directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -43,10 +42,6 @@ print("Loading Whisper model...")
 model = whisper.load_model("tiny")
 print("Whisper model loaded.")
 
-import random
-
-# ... imports ...
-
 def create_caption_clip(text, start_time, end_time, video_width, video_height, highlight_color='white'):
     """
     Creates a TextClip for a single word/phrase.
@@ -56,13 +51,8 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
     - Thicker Storke
     - Conditional Colors
     """
-    # MoviePy 2.x changes: TextClip.list('font') might not work or return different results.
-    # We will just stick to a standard font.
-    # Font selection: Try to match "Impact" or fall back to system defaults
-    # On macOS, ImageMagick/MoviePy sometimes struggles with just "Impact"
     font = "Impact"
     if os.name == 'posix': # Linux/Mac
-        # Common locations for fonts
         potential_fonts = [
             "Impact", 
             "/Library/Fonts/Impact.ttf", 
@@ -73,7 +63,6 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
             "Helvetica-Bold"
         ]
         for f in potential_fonts:
-            # Simple check if file exists (if path) or assume name is valid
             if f.startswith("/") and os.path.exists(f):
                 font = f
                 break
@@ -83,18 +72,15 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
     if os.path.exists(anton_path):
         font = anton_path
             
-    # Calculate more dynamic font size based on video width
     fontsize = int(video_width * 0.13) if video_width else 120
     if fontsize < 90: fontsize = 90 # Minimum size
     
-    # Use method='caption' with a fixed width AND fixed height to prevent clipping.
-    # We make the height 2x the font size to give plenty of room.
     txt_clip = TextClip(
-        text=text.upper(), # Force UPPERCASE
+        text=text.upper(), 
         font_size=fontsize,
         color=highlight_color, 
         stroke_color='black',
-        stroke_width=6, # Very thick stroke
+        stroke_width=6, 
         font=font,
         method='caption',
         size=(video_width, int(fontsize * 2)), 
@@ -103,89 +89,22 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
         vertical_align='center'
     )
     
-    # Position: center.
     txt_clip = txt_clip.with_position('center').with_start(start_time).with_end(end_time)
     
     return txt_clip
 
-from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
-from supabase import create_client, Client
-
-# Initialize Supabase (Service Role for Admin Access)
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# --- AD-SUPPORTED (FREE) LOGIC ---
+# Removed: Supabase, Stripe, CheckCredits, DeterCredits
+# This backend is now fully open.
 
 # In-memory job store
 jobs = {}
-
-def check_credits(user_id: str) -> bool:
-    """
-    Check if user has credits.
-    Returns: True if allowed, False if denied.
-    """
-    if not user_id: return False
-    
-    try:
-        # Check user profile
-        response = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
-        
-        # If no profile, create one (Free Tier default)
-        if not response.data:
-            print(f"Creating new profile for {user_id}")
-            supabase.table("profiles").insert({
-                "user_id": user_id, 
-                "email": "unknown@example.com", # We don't have email from token yet, handled later
-                "tier": "free",
-                "credits": 3
-            }).execute()
-            return True
-            
-        profile = response.data[0]
-        credits = profile.get("credits", 0)
-        tier = profile.get("tier", "free")
-        
-        print(f"User {user_id}: Tier={tier}, Credits={credits}")
-        
-        if tier == "free" and credits <= 0:
-            return False
-            
-        return True
-        
-    except Exception as e:
-        print(f"Database Error: {e}")
-        # FAIL SAFE: If DB is down or table missing, Allow it for now to avoid blocking
-        # But log the error.
-        return True
-
-def deduct_credit(user_id: str):
-    try:
-        # Deduct 1 credit for free users
-        # For efficiency, we can do this async or here.
-        # We assume check was done.
-        # We need to explicitly decrement.
-        # Note: RPC is better for atomic updates but this is MVP.
-        
-        response = supabase.table("profiles").select("*").eq("user_id", user_id).execute()
-        if response.data:
-             current = response.data[0].get("credits", 0)
-             if current > 0:
-                 supabase.table("profiles").update({"credits": current - 1}).eq("user_id", user_id).execute()
-                 print(f"Deducted credit for {user_id}. Remaining: {current - 1}")
-    except Exception as e:
-        print(f"Deduct Credit Error: {e}")
-
 
 def process_video_task(job_id: str, file_path: str, filename: str, user_id: str = None):
     print(f"[{job_id}] Processing started for {filename}...")
     jobs[job_id]["status"] = "processing"
     
-    # Optional: Deduct credit HERE if successful, 
-    # OR deduct before starting. Let's deduct here to be nice if it fails.
-    if user_id:
-        deduct_credit(user_id)
-        
     try:
-        # Use a safe, sanitized filename for the output to prevent URL encoding issues
-        # We ignore the original filename for the output file
         output_filename = f"processed_{job_id}.mp4"
         output_path = os.path.join(OUTPUT_DIR, output_filename)
         
@@ -248,18 +167,11 @@ def process_video_task(job_id: str, file_path: str, filename: str, user_id: str 
 async def upload_video(
     background_tasks: BackgroundTasks, 
     file: UploadFile = File(...),
-    user_id: str = Form(None) # Receive user_id from frontend
+    user_id: str = Form(None) 
 ):
-    # Credit Check
-    if user_id:
-        allowed = check_credits(user_id)
-        if not allowed:
-             raise HTTPException(status_code=402, detail="Out of credits. Upgrade to Pro!")
-    else:
-        # If no user_id provided (legacy/dev), we allow it for now or block.
-        # For V3.0, we block.
-        # raise HTTPException(status_code=401, detail="Authentication required.")
-        pass # Allow for dev testing
+    # Free Mode: Accept all uploads
+    # Ideally, we should rate limit by IP here to avoid abuse, but for now we keep it simple.
+    print(f"Received upload from {user_id or 'Anonymous'}")
 
     job_id = str(uuid.uuid4())
     filename = f"{job_id}_{file.filename}"
@@ -271,87 +183,7 @@ async def upload_video(
     jobs[job_id] = {"status": "queued", "video_url": "", "error": None}
     background_tasks.add_task(process_video_task, job_id, file_path, filename, user_id)
     
-# ... existing code ...
-
-# STRIPE INTEGRATION
-import stripe
-from config import STRIPE_SECRET_KEY, SUPABASE_SERVICE_KEY
-stripe.api_key = STRIPE_SECRET_KEY
-endpoint_secret = "" # TODO: Add Webhook Secret if verifying signatures (Optional for test mode MVP)
-
-@app.post("/create-checkout-session")
-async def create_checkout_session(tier: str = Form(...), user_id: str = Form(...)):
-    """
-    Create a Stripe Checkout Session for Pro/Business upgrades.
-    """
-    price_id = ""
-    if tier == "pro":
-        price_id = "price_1SrMRoSFVRQo1NynS1A4U5pc"
-    elif tier == "business":
-        price_id = "price_1SrMRpSFVRQo1Nyn2riWneNG"
-    else:
-        raise HTTPException(400, "Invalid tier")
-
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    'price': price_id,
-                    'quantity': 1,
-                },
-            ],
-            mode='subscription',
-            success_url='https://caption-beast.vercel.app/?success=true', # Redirect back to app
-            cancel_url='https://caption-beast.vercel.app/?canceled=true',
-            client_reference_id=user_id, # EXTREMELY IMPORTANT: Pass user_id to webhook
-            metadata={
-                "user_id": user_id,
-                "tier": tier
-            }
-        )
-        return {"url": checkout_session.url}
-    except Exception as e:
-        print(f"Stripe Error: {e}")
-        raise HTTPException(500, str(e))
-
-@app.post("/webhook")
-async def stripe_webhook(request: Request):
-    """
-    Handle Stripe events to unlock features.
-    """
-    payload = await request.body()
-    sig_header = request.headers.get('stripe-signature')
-    event = None
-
-    try:
-        event = stripe.Event.construct_from(
-            json.loads(payload), stripe.api_key
-        )
-    except ValueError as e:
-        raise HTTPException(400, "Invalid payload")
-
-    # Handle the event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        
-        # Fulfill the purchase...
-        user_id = session.get('client_reference_id')
-        tier = session.get('metadata', {}).get('tier', 'pro')
-        customer_id = session.get('customer')
-        
-        print(f"💰 Payment received! Upgrading User {user_id} to {tier}")
-        
-        if user_id:
-            # Grant infinite credits or high limit
-            new_credits = 100 if tier == 'pro' else 1000
-            
-            supabase.table("profiles").update({
-                "tier": tier,
-                "credits": new_credits,
-                "stripe_customer_id": customer_id
-            }).eq("user_id", user_id).execute()
-            
-    return {"status": "success"}
+    return {"job_id": job_id, "status": "queued"}
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):
@@ -360,13 +192,10 @@ async def get_status(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-# Removed manual /download endpoint as it is now handled by StaticFiles mount
-
 @app.get("/")
 def home():
-    return {"message": "CaptionBeast Backend is Running!", "status": "active"}
+    return {"message": "CaptionBeast Backend (Free Mode) is Running!", "status": "active"}
 
 if __name__ == "__main__":
-    # Use PORT from environment variable or default to 7860 (HF default)
     port = int(os.environ.get("PORT", 7860))
     uvicorn.run(app, host="0.0.0.0", port=port)
