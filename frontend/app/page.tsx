@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Upload, FileVideo, Download, Loader2, Sparkles, Play } from "lucide-react";
 import clsx from "clsx";
-import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import AdBanner from "@/components/AdBanner";
 import SocialShare from "@/components/SocialShare";
 
@@ -14,7 +13,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = useAuth(); // Optional now
+  const userId = "local-user"; // Hardcoded for local mode
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Wake up server on load
@@ -71,36 +70,13 @@ export default function Home() {
       const jobId = uploadResp.data.job_id;
       console.log("Job started:", jobId);
 
-      // 2. Poll for status
-      const pollInterval = setInterval(async () => {
-        try {
-          setProgress((prev) => (prev < 90 ? prev + 1 : prev));
+      // Save to local storage for the dashboard to pick up
+      localStorage.setItem("captionBeastRecentJob", jobId);
 
-          const statusResp = await axios.get(`${apiUrl}/status/${jobId}`);
-          const status = statusResp.data.status;
+      // Redirect to dashboard immediately
+      window.location.href = "/dashboard";
+      // Polling moved to dashboard
 
-          if (status === 'completed') {
-            const videoPath = statusResp.data.video_url;
-            if (videoPath && typeof videoPath === 'string' && videoPath.length > 5) {
-              clearInterval(pollInterval);
-              setProgress(100);
-
-              const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-              const cleanVideoPath = videoPath.startsWith('/') ? videoPath : `/${videoPath}`;
-              const finalUrl = `${cleanApiUrl}${cleanVideoPath}`;
-
-              setVideoUrl(finalUrl);
-              setUploading(false);
-            }
-          } else if (status === 'failed') {
-            clearInterval(pollInterval);
-            setError("Processing failed: " + statusResp.data.error);
-            setUploading(false);
-          }
-        } catch (err) {
-          console.error("Polling error", err);
-        }
-      }, 3000);
 
     } catch (err: any) {
       console.error(err);
@@ -126,14 +102,9 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="text-sm font-medium hover:text-white transition">Sign In</button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+            <div className="text-sm font-medium text-stone-400">
+              Local Mode
+            </div>
           </div>
         </div>
       </nav>
@@ -359,7 +330,12 @@ export default function Home() {
       </main >
 
       <footer className="border-t border-white/5 mt-20 py-12 text-center text-stone-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CaptionBeast AI. <span className="text-stone-700 ml-2">v5.0 (Ad-Supported)</span></p>
+        <p className="mb-4">&copy; {new Date().getFullYear()} CaptionBeast AI. <span className="text-stone-700 ml-2">v5.0 (Ad-Supported)</span></p>
+        <div className="flex justify-center gap-6 text-stone-600">
+          <a href="/privacy" className="hover:text-yellow-400 transition-colors">Privacy Policy</a>
+          <a href="/terms" className="hover:text-yellow-400 transition-colors">Terms of Service</a>
+          <a href="/contact" className="hover:text-yellow-400 transition-colors">Contact Us</a>
+        </div>
       </footer>
     </div >
   );

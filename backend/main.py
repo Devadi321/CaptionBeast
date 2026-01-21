@@ -100,62 +100,137 @@ def create_caption_clip(text, start_time, end_time, video_width, video_height, h
 # In-memory job store
 jobs = {}
 
+@app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+# Import segmentation logic
+from segmentation import analyze_transcript_with_llm, find_timestamps_for_clip
+
 def process_video_task(job_id: str, file_path: str, filename: str, user_id: str = None):
     print(f"[{job_id}] Processing started for {filename}...")
     jobs[job_id]["status"] = "processing"
     
     try:
-        output_filename = f"processed_{job_id}.mp4"
-        output_path = os.path.join(OUTPUT_DIR, output_filename)
+        # Create job-specific output folder
+        job_output_dir = os.path.join(OUTPUT_DIR, job_id)
+        os.makedirs(job_output_dir, exist_ok=True)
         
         # 1. Transcribe
         print(f"[{job_id}] Transcribing...")
         result = model.transcribe(file_path, word_timestamps=True)
         segments = result.get('segments', [])
+        full_text = result.get('text', "")
         
-        # 2. Process Video
-        print(f"[{job_id}] Loading Video...")
-        video = VideoFileClip(file_path)
-        
-        caption_clips = []
+        # Flatten words
         words = []
         for segment in segments:
             for word in segment.get('words', []):
                 words.append(word)
+
+        # 2. Smart Segmentation (Ollama)
+        print(f"[{job_id}] Analyzing for viral clips...")
+        start_clips_processing = False
+        potential_clips = analyze_transcript_with_llm(full_text)
         
-        print(f"[{job_id}] Generating {len(words)} caption clips...")
+        processed_clips = []
         
-        for word_data in words:
-            word = word_data['word'].strip()
-            start = word_data['start']
-            end = word_data['end']
+        if not potential_clips:
+            print(f"[{job_id}] No AI clips found. Fallback: Generate one full clip.")
+            # Create a 'fake' clip entry for the whole video
+            potential_clips = [{
+                "start_text": words[0]['word'],
+                "end_text": words[-1]['word'],
+                "reason": "Full video (AI segmentation failed or not connected)",
+                "score": 0
+            }]
+
+        # 3. Process Each Clip
+        print(f"[{job_id}] Loading Video...")
+        video = VideoFileClip(file_path)
+        
+        for i, clip_data in enumerate(potential_clips):
+            print(f"[{job_id}] Generating Clip {i+1}...")
             
-            if not word: continue
+            # Find Start/End Timestamps
+            if "start_time" in clip_data:
+                # If LLM returned times directly (future proofing)
+                start_t = clip_data["start_time"]
+                end_t = clip_data["end_time"]
+            else:
+                # Fuzzy match text
+                s_text = clip_data.get("start_text", "")
+                e_text = clip_data.get("end_text", "")
+                start_t, end_t = find_timestamps_for_clip(words, s_text, e_text)
             
-            # Smart Color Logic
-            color = 'white'
-            if len(word) > 4:
-                if random.random() > 0.4: color = '#00FF00'
-            elif random.random() > 0.8: color = '#FFFF00'
+            # Fallbacks: If parsing fails, default to 0-60s or full length
+            if start_t == 0.0 and end_t == 0.0:
+                print(f"[{job_id}] Could not match text for Clip {i+1}. Using fallback.")
+                start_t = 0
+                end_t = min(video.duration, 60) # Default to first 60s
+            
+            # Filter words for this clip
+            clip_words = [w for w in words if w['start'] >= start_t and w['end'] <= end_t]
+            
+            # Create Caption Clips
+            caption_clips = []
+            for word_data in clip_words:
+                word = word_data['word'].strip()
+                ws = word_data['start']
+                we = word_data['end']
                 
-            clip = create_caption_clip(word, start, end, video.w, video.h, highlight_color=color)
-            caption_clips.append(clip)
+                # Adjust timestamps relative to clip start
+                # IMPORTANT: TextClip needs absolute time in the final composite context, 
+                # but if we subclip the video, the video starts at 0.
+                # EASIER METHOD: Subclip video first, then shift word timestamps by -start_t
+                
+                if not word: continue
+                
+                color = 'white'
+                if len(word) > 4:
+                    if random.random() > 0.4: color = '#00FF00'
+                elif random.random() > 0.8: color = '#FFFF00'
+                    
+                # Create clip with adjusted time
+                # We will composite on top of the subclip, so times must be 0-based relative to subclip
+                clip = create_caption_clip(word, ws - start_t, we - start_t, video.w, video.h, highlight_color=color)
+                caption_clips.append(clip)
+
+            # Subclip the main video
+            # Make sure end_t doesn't exceed duration
+            end_t = min(end_t, video.duration)
+            if start_t >= end_t: start_t = 0 # Safety
             
-        print(f"[{job_id}] Compositing...")
-        final_video = CompositeVideoClip([video] + caption_clips)
-        
-        final_video.write_videofile(
-            output_path, 
-            codec='libx264', 
-            audio_codec='aac',
-            temp_audiofile=os.path.join(OUTPUT_DIR, f"temp-{job_id}.m4a"),
-            remove_temp=True,
-            fps=video.fps or 24
-        )
-        
-        jobs[job_id]["video_url"] = f"/download/{output_filename}"
+            video_sub = video.subclipped(start_t, end_t)
+            
+            # Composite
+            final_clip = CompositeVideoClip([video_sub] + caption_clips)
+            
+            output_filename = f"clip_{i}_{job_id}.mp4"
+            output_fullpath = os.path.join(job_output_dir, output_filename)
+            
+            final_clip.write_videofile(
+                output_fullpath, 
+                codec='libx264', 
+                audio_codec='aac',
+                temp_audiofile=os.path.join(job_output_dir, f"temp-{i}.m4a"),
+                remove_temp=True,
+                fps=video.fps or 24
+            )
+            
+            processed_clips.append({
+                "url": f"/download/{job_id}/{output_filename}",
+                "reason": clip_data.get("reason", "Generated Clip"),
+                "score": clip_data.get("score", 0),
+                "duration": end_t - start_t
+            })
+
+        jobs[job_id]["clips"] = processed_clips
         jobs[job_id]["status"] = "completed"
-        print(f"[{job_id}] Done!")
+        print(f"[{job_id}] Done! Generated {len(processed_clips)} clips.")
         
     except Exception as e:
         import traceback
@@ -170,7 +245,6 @@ async def upload_video(
     user_id: str = Form(None) 
 ):
     # Free Mode: Accept all uploads
-    # Ideally, we should rate limit by IP here to avoid abuse, but for now we keep it simple.
     print(f"Received upload from {user_id or 'Anonymous'}")
 
     job_id = str(uuid.uuid4())
@@ -184,13 +258,6 @@ async def upload_video(
     background_tasks.add_task(process_video_task, job_id, file_path, filename, user_id)
     
     return {"job_id": job_id, "status": "queued"}
-
-@app.get("/status/{job_id}")
-async def get_status(job_id: str):
-    job = jobs.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
 
 @app.get("/")
 def home():
