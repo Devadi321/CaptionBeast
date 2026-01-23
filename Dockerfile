@@ -23,7 +23,9 @@ WORKDIR /app
 COPY backend/requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Use CPU-only PyTorch to drastically reduce image size (approx 700MB saved)
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code into /app
 COPY backend/ .
@@ -31,9 +33,11 @@ COPY backend/ .
 # Ensure directories exist and have permissions (HF runs as user 1000 usually)
 RUN mkdir -p uploads outputs && chmod 777 uploads outputs
 
-# Expose generic port (HF sets PORT env var)
+# Expose port (Required for Hugging Face Spaces)
 EXPOSE 7860
 
-# Run with dynamic port parsing (handled in main.py) or explicit command
-# Hugging Face usually provides PORT=7860. code uses os.environ.get("PORT")
-CMD ["python", "main.py"]
+# Force cache invalidation
+ENV BUILD_DATE="2026-01-23-FIX-ROOT"
+
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
