@@ -30,8 +30,8 @@ COPY . .
 # Create uploads and outputs dirs
 RUN mkdir -p uploads outputs
 
-# Expose port
-EXPOSE 8000
+# Expose port 7860 (Required for Hugging Face Spaces)
+EXPOSE 7860
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
