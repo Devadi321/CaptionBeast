@@ -5,7 +5,7 @@ colorFrom: yellow
 colorTo: pink
 sdk: docker
 pinned: false
-app_port: 7860
+app_port: 8000
 ---
 
 # CaptionBeast Backend
