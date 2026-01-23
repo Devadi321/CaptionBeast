@@ -3,7 +3,6 @@ uvicorn
 python-multipart
 moviepy
 openai-whisper
-torch
 numpy
 imageio-ffmpeg
 python-dotenv
