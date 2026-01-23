@@ -30,8 +30,11 @@ COPY . .
 # Create uploads and outputs dirs
 RUN mkdir -p uploads outputs
 
-# Expose port (We use 8000 and configure HF to listen on it)
-EXPOSE 8000
+# Expose port 7860 (Standard for Hugging Face)
+EXPOSE 7860
+
+# Force cache invalidation
+ENV BUILD_DATE="2026-01-23-v2"
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
