@@ -30,7 +30,7 @@ export default function Dashboard() {
         const fetchJob = async () => {
             try {
                 setLoading(true);
-                let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:7860';
+                let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
                 const res = await axios.get(`${apiUrl}/status/${activeJobId}`);
                 setJobData(res.data);
                 setLoading(false);
@@ -93,7 +93,7 @@ export default function Dashboard() {
                             <div key={idx} className="bg-stone-900 rounded-2xl overflow-hidden border border-white/5 hover:border-yellow-400/30 transition shadow-xl">
                                 <div className="aspect-[9/16] bg-black relative group">
                                     <video
-                                        src={`http://127.0.0.1:7860${clip.url}`}
+                                        src={`http://127.0.0.1:8000${clip.url}`}
                                         controls
                                         className="w-full h-full object-cover"
                                     />
@@ -110,7 +110,7 @@ export default function Dashboard() {
                                             {(clip.duration || 0).toFixed(1)}s
                                         </span>
                                         <a
-                                            href={`http://127.0.0.1:7860${clip.url}`}
+                                            href={`http://127.0.0.1:8000${clip.url}`}
                                             download
                                             className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-stone-200 transition"
                                         >

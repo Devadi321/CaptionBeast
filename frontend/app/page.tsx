@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Upload, FileVideo, Download, Loader2, Sparkles, Play } from "lucide-react";
+import { Upload, FileVideo, Download, Loader2, Sparkles, CreditCard } from "lucide-react";
 import clsx from "clsx";
 import AdBanner from "@/components/AdBanner";
 import SocialShare from "@/components/SocialShare";
@@ -13,17 +13,42 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const userId = "local-user"; // Hardcoded for local mode
+  const [credits, setCredits] = useState<number>(0);
+  const [userId, setUserId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Wake up server on load
-  useEffect(() => {
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      apiUrl = 'http://127.0.0.1:7860';
+  const getApiUrl = () => {
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+      apiUrl = "http://127.0.0.1:8000";
     }
-    // Fire and forget ping
-    console.log("Pinging server to wake up...");
+    return apiUrl;
+  };
+
+  // Initialize user and fetch credits on load
+  useEffect(() => {
+    // Get or create user ID
+    let storedUserId = localStorage.getItem("captionBeastUserId");
+    if (!storedUserId) {
+      storedUserId = "user_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("captionBeastUserId", storedUserId);
+    }
+    setUserId(storedUserId);
+
+    // Fetch credits
+    const fetchCredits = async () => {
+      try {
+        const apiUrl = getApiUrl();
+        const res = await axios.get(`${apiUrl}/credits/${storedUserId}`);
+        setCredits(res.data.credits);
+      } catch (e) {
+        console.error("Failed to fetch credits", e);
+      }
+    };
+    fetchCredits();
+
+    // Wake up server
+    const apiUrl = getApiUrl();
     axios.get(apiUrl).catch(() => { });
   }, []);
 
@@ -31,6 +56,7 @@ export default function Home() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setError(null);
+      setVideoUrl(null);
     }
   };
 
@@ -39,6 +65,7 @@ export default function Home() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFile(e.dataTransfer.files[0]);
       setError(null);
+      setVideoUrl(null);
     }
   };
 
@@ -56,10 +83,7 @@ export default function Home() {
     }
 
     try {
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://adithyan321-caption-beast-backend.hf.space';
-      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        apiUrl = 'http://127.0.0.1:7860';
-      }
+      const apiUrl = getApiUrl();
 
       // 1. Upload and get Job ID
       console.log("Starting upload...");
@@ -69,23 +93,45 @@ export default function Home() {
 
       const jobId = uploadResp.data.job_id;
       console.log("Job started:", jobId);
-
-      // Save to local storage for the dashboard to pick up
       localStorage.setItem("captionBeastRecentJob", jobId);
+      setProgress(20);
 
-      // Redirect to dashboard immediately
-      window.location.href = "/dashboard";
-      // Polling moved to dashboard
+      for (let i = 0; i < 180; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const statusResp = await axios.get(`${apiUrl}/status/${jobId}`);
+        const job = statusResp.data;
+
+        if (job.status === "completed") {
+          const clipUrl = job?.clips?.[0]?.url;
+          if (!clipUrl) {
+            throw new Error("Caption video missing in job result.");
+          }
+          setVideoUrl(`${apiUrl}${clipUrl}`);
+          setProgress(100);
+          setUploading(false);
+          return;
+        }
+
+        if (job.status === "failed") {
+          throw new Error(job.error || "Rendering failed.");
+        }
+
+        setProgress((prev) => Math.min(prev + 2, 95));
+      }
+
+      throw new Error("Processing timed out. Please try again.");
 
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      if (err.response && (err.response.status === 503 || err.response.status === 504)) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: string } }; message?: string };
+      if (axiosErr.response && (axiosErr.response.status === 503 || axiosErr.response.status === 504)) {
         setError("😴 The free server is sleeping! It is waking up now. Please wait 1 minute and try again.");
       } else {
-        setError("Failed to start upload. " + (err.response?.data?.detail || err.message));
+        setError("Failed to start upload. " + (axiosErr.response?.data?.detail || axiosErr.message || "Unknown error"));
       }
       setUploading(false);
+      setProgress(0);
     }
   };
 
@@ -102,9 +148,15 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-sm font-medium text-stone-400">
-              Local Mode
-            </div>
+            {/* Credits Display */}
+            <a 
+              href="/buy-credits" 
+              className="flex items-center gap-2 bg-stone-800 hover:bg-stone-700 px-4 py-2 rounded-full transition"
+            >
+              <CreditCard className="w-4 h-4 text-yellow-400" />
+              <span className="font-bold">{credits}</span>
+              <span className="text-stone-400 text-sm">credits</span>
+            </a>
           </div>
         </div>
       </nav>
@@ -275,7 +327,7 @@ export default function Home() {
               </p>
             </div>
             <div className="bg-stone-900/30 p-8 rounded-3xl border border-white/5 hover:border-yellow-400/20 transition">
-              <h3 className="text-xl font-bold mb-4 text-white">Viral "Hormozi" Style</h3>
+              <h3 className="text-xl font-bold mb-4 text-white">Viral &quot;Hormozi&quot; Style</h3>
               <p className="text-stone-400 leading-relaxed">
                 Get that explosive word-by-word animation style made famous by top creators.
                 Our AI ensures perfect timing and engagement.
@@ -288,7 +340,7 @@ export default function Home() {
             <div className="space-y-6">
               <p>
                 Adding captions to your videos is the #1 way to increase retention and engagement.
-                With CaptionBeast, you don't need complex software like Adobe Premiere or payments for tools like OpusClip.
+                With CaptionBeast, you don&apos;t need complex software like Adobe Premiere or payments for tools like OpusClip.
               </p>
               <ol className="list-decimal pl-6 space-y-2">
                 <li><strong>Upload your video</strong>: We support MP4, MOV, and WEBM formats up to 50MB.</li>
