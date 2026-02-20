@@ -4,6 +4,7 @@ import shutil
 import uuid
 import math
 import random
+import threading
 from typing import List
 from datetime import datetime
 
@@ -74,12 +75,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load Whisper model globally to avoid reloading on every request
-# 'base' is a good trade-off for speed/accuracy. 'tiny' is faster, 'small' is better.
-# For free tier (512MB RAM), we MUST use 'tiny' or it will OOM crash.
-print("Loading Whisper model...")
-model = whisper.load_model("tiny")
-print("Whisper model loaded.")
+# Lazy-load Whisper so cloud health checks can pass before model init.
+_whisper_model = None
+_whisper_model_lock = threading.Lock()
+
+
+def get_whisper_model():
+    global _whisper_model
+    if _whisper_model is not None:
+        return _whisper_model
+
+    with _whisper_model_lock:
+        if _whisper_model is None:
+            print("Loading Whisper model...")
+            _whisper_model = whisper.load_model("tiny")
+            print("Whisper model loaded.")
+    return _whisper_model
 
 # Credit System Functions
 def get_user_credits(user_id: str) -> int:
@@ -282,6 +293,10 @@ async def redeem_promo_code(user_id: str = Form(...), code: str = Form(...)):
 # In-memory job store
 jobs = {}
 
+@app.get("/")
+async def root_health():
+    return {"status": "ok", "service": "captionbeast-backend"}
+
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):
     job = jobs.get(job_id)
@@ -300,6 +315,7 @@ def process_video_task(job_id: str, file_path: str, filename: str, user_id: str 
         
         # 1. Transcribe
         print(f"[{job_id}] Transcribing...")
+        model = get_whisper_model()
         result = model.transcribe(file_path, word_timestamps=True)
         segments = result.get('segments', [])
         
@@ -415,4 +431,5 @@ async def upload_video(
     return {"job_id": job_id, "status": "queued", "credits_remaining": get_user_credits(user_id)}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
